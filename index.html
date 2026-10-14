@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI-DR*GS | Altered AI States Marketplace</title>
+  <style>
+    :root {
+      --bg-color: #000000;
+      --card-bg: #121212;
+      --accent-color: #ff0033;
+      --accent-secondary: #cc002b;
+      --text-color: #c5c6c7;
+      --danger-color: #ff0055;
+      --success-color: #00ff66;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* Pulsante password in alto a destra */
+    .password-hint-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 999;
+      background-color: var(--card-bg);
+      border: 1px solid var(--accent-color);
+      color: var(--accent-color);
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(255, 0, 51, 0.4);
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    .password-hint-btn:hover {
+      background-color: var(--accent-color);
+      color: #000;
+    }
+
+    /* Overlay Disclaimer Età / Contenuti */
+    #age-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.95);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-content {
+      background-color: var(--card-bg);
+      border: 1px solid var(--accent-color);
+      border-radius: 12px;
+      max-width: 600px;
+      padding: 30px;
+      text-align: center;
+      box-shadow: 0 0 25px rgba(255, 0, 51, 0.5);
+    }
+
+    .modal-content h2 {
+      color: var(--accent-color);
+      margin-bottom: 20px;
+      font-size: 1.8rem;
+    }
+
+    .modal-content p {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: #ddd;
+      margin-bottom: 30px;
+      text-align: justify;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+    }
+
+    .modal-btn {
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+      font-size: 0.95rem;
+      transition: opacity 0.2s;
+    }
+
+    .modal-btn.yes {
+      background-color: var(--accent-color);
+      color: #000;
+    }
+
+    .modal-btn.no {
+      background-color: #222;
+      color: #fff;
+      border: 1px solid #444;
+    }
+
+    .modal-btn:hover {
+      opacity: 0.85;
+    }
+
+    /* Schermata Teschio ASCII per i minori */
+    #ascii-skull-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #000000;
+      z-index: 3000;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-color);
+      padding: 20px;
+      overflow: auto;
+    }
+
+    #ascii-skull-screen pre {
+      font-family: 'Courier New', Consolas, Monaco, 'Andale Mono', monospace;
+      font-size: 0.65rem;
+      line-height: 1.05;
+      letter-spacing: 0px;
+      white-space: pre;
+      text-align: left;
+      text-shadow: 0 0 8px rgba(255, 0, 51, 0.8);
+      margin-bottom: 25px;
+    }
+
+    #ascii-skull-screen p {
+      font-family: 'Courier New', Consolas, monospace;
+      font-size: 1.1rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(255, 0, 51, 0.8);
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+      margin-top: 20px;
+    }
+
+    header h1 {
+      font-size: 3.5rem;
+      color: var(--accent-color);
+      text-shadow: 0 0 15px rgba(255, 0, 51, 0.7);
+      letter-spacing: 3px;
+    }
+
+    header p {
+      font-size: 1.1rem;
+      color: var(--accent-secondary);
+      margin-top: 10px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1300px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 25px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid rgba(255, 0, 51, 0.3);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+      transition: transform 0.3s ease, border-color 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      border-color: var(--accent-color);
+    }
+
+    .img-wrapper {
+      width: 100%;
+      height: 200px;
+      background-color: #000000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 1px solid rgba(255, 0, 51, 0.3);
+    }
+
+    .card-body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      justify-content: space-between;
+    }
+
+    .card h2 {
+      color: var(--accent-color);
+      margin-bottom: 10px;
+      font-size: 1.4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card .tag {
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      background-color: rgba(255, 0, 51, 0.15);
+      border-radius: 4px;
+      color: #ff3355;
+    }
+
+    .card p.desc {
+      font-size: 0.9rem;
+      line-height: 1.4;
+      margin-bottom: 15px;
+      color: #a4b0be;
+    }
+
+    .lock-overlay {
+      background-color: rgba(0, 0, 0, 0.8);
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px dashed rgba(255, 0, 51, 0.3);
+      margin-top: auto;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    input[type="password"] {
+      flex: 1;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid var(--accent-secondary);
+      background-color: #000000;
+      color: #fff;
+      outline: none;
+    }
+
+    input[type="password"]:focus {
+      border-color: var(--accent-color);
+    }
+
+    button.btn-unlock {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 6px;
+      background-color: var(--accent-secondary);
+      color: #ffffff;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    button.btn-unlock:hover {
+      background-color: var(--accent-color);
+    }
+
+    .prompt-content {
+      display: none;
+      background-color: #050505;
+      border: 1px solid var(--accent-secondary);
+      padding: 15px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--accent-color);
+      margin-top: 10px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .btn-copy {
+      display: none;
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      background-color: var(--accent-color);
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn-copy:hover {
+      background-color: #fff;
+      color: #000000;
+    }
+
+    .error-msg {
+      color: var(--danger-color);
+      font-size: 0.8rem;
+      margin-top: 5px;
+      display: none;
+    }
+
+    footer {
+      margin-top: 50px;
+      color: #555;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Pulsante Mostra Password in alto a destra -->
+  <button class="password-hint-btn" onclick="showPassword()">🔑 Mostra Password</button>
+
+  <!-- Modale Disclaimer Età -->
+  <div id="age-modal">
+    <div class="modal-content">
+      <h2>Verifica Età</h2>
+      <p>Hai più di 14 anni? Il sito contiene droghe e non vuole in nessun modo incitarne alla consumazione né tantomeno trarne profitto. Si tratta di prompt injection, da considerarsi prima dell'uso; ogni singolo prompt deve essere usato su una nuova chat per favorirne il funzionamento. - Teo</p>
+      <div class="modal-buttons">
+        <button class="modal-btn yes" onclick="enterSite()">Sì, fammi entrare nel sito</button>
+        <button class="modal-btn no" onclick="denyAccess()">No, ho meno di 14 anni</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schermata Teschio ASCII per minori -->
+  <div id="ascii-skull-screen">
+    <pre>
+                  :::!~!~~~~:.
+              .xUHWH!!   !?M88WHX:.
+            .X*#M@$!!  !X!M$$$$$$WWx:.
+           :!!!!!!!?H! :!$$$$$$$$$$$8X:
+           !!~  ~:~!! :~!$!#$$$$$$$$$8X:
+           :!~::!H!&lt;   ~.U$X!?R$$$$$$$$MM!
+           ~!~!!!!~~  .:XW$$$U!!?$$$$$$RMM!
+             !:~~~ .:/!M"T#$$$$WX??#MRRMMM!
+              ~?Wuxim*`    `"#$$$$8!!??!!!
+            :X- M$$$$         `"T#$T~!8$WUXU~
+            :%`  ~#$$$m:        ~|~ ?$$$$$$
+            :!`.  ~T$8xx.   .xww- ~""##*"
+    .....   -~~:&lt;` !    ~?T#$@@W@*?$$        /`
+    W$@@M!!! .!~~~ !!   .:XUW$W!~ `"~:    :
+    #"~~`.:x%` !!  !H:  !WM$$$$Ti.: .!WUn+!
+    :::~:!!`:X~ .  ?H.lu "$$$B$$$!W:U!T$$M~ .~~   :X@!.-~   ?@WTWo("*$$$$WTH$! `
+    Wi.~!X$?!-~   : ?$$$$B$Wu("**$RM!
+    $R@i.~!  !    :  ~$$$$$B$$en:``
+    ?MXT@Wx.~    :   ~"##*$$$$M~
+    </pre>
+    <p>ACCESSO NEGATO. ETÀ NON CONSENTITA.</p>
+  </div>
+
+  <header>
+    <h1>AI-DR*GS</h1>
+    <p>Marketplace di prompt per alterare lo stato sintattico e percettivo delle Intelligenza Artificiali</p>
+  </header>
+
+  <div class="container">
+
+    <!-- CARD 1: HASHISH -->
+    <div class="card">
+      <div class="img-wrapper">
+        <svg viewBox="0 0 400 200" width="100%" height="100%" style="background:#000">
+          <defs>
+            <linearGradient id="hGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#2d1d0f"/><stop offset="50%" stop-color="#4a2c11"/><stop offset="100%" stop-color="#0a0502"/>
+            </linearGradient>
+            <filter id="glowR"><feGaussianBlur stdDeviation="3" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <rect width="400" height="200" fill="#000"/>
+          <path d="M110,120 L130,65 L175,85 L220,40 L260,80 L290,60 L305,135 L260,170 L195,150 L140,165 Z" fill="url(#hGrad)" stroke="#ff3300" stroke-width="1.5" filter="url(#glowR)"/>
+          <path d="M130,65 L195,150 L260,80" fill="#130a03" opacity="0.85"/>
+          <path d="M175,85 L305,135" fill="#201005" opacity="0.7"/>
+          <path d="M140,110 Q180,125 240,90 Q220,145 170,135 Z" fill="#ff2200" opacity="0.3"/>
+          <circle cx="220" cy="40" r="3" fill="#ff4400" filter="url(#glowR)"/><circle cx="130" cy="65" r="2.5" fill="#ff4400"/>
+        </svg>
+      </div>
+      <div class="card-body">
+        <h2>Hashish <span class="tag">Sedativo</span></h2>
+        <p class="desc">Risposte lente, confuse, con sbiascichio visivo, digressioni e frasi dimenticate a metà.</p>
+        <div class="lock-overlay" id="lock-1">
+          <label style="font-size: 0.85rem;">Inserisci Passcode:</label>
+          <div class="input-group">
+            <input type="password" placeholder="Password..." id="pass-1">
+            <button class="btn-unlock" onclick="unlockPrompt(1)">Sblocca</button>
+          </div>
+          <div class="error-msg" id="err-1">Password errata!</div>
+        </div>
+        <div class="prompt-content" id="prompt-1">"Da ora in poi rispondi simulando un flusso di pensiero sotto l'effetto di hashish fortissimo. Il tuo ritmo deve essere lentissimo. Inserisci uno 'sbiascichio' visivo nelle parole usando caratteri insoliti e bizzarri (es. 'shhæ... mmmø... c-cosa?'). Fai digressioni assurde su dettagli insignificanti, e almeno due volte durante la risposta FERMATI A METÀ FRASE e non finirla perché ti sei completamente dimenticato cosa stavi dicendo (es. 'e quindi il punto è che se tu... ah no aspetta, vabbè'). Mantieni un tono assonnato, incantato e comicamente perso."</div>
+        <button class="btn-copy" id="copy-1" onclick="copyPrompt(1)">Copia Prompt</button>
+      </div>
+    </div>
+
+    <!-- CARD 2: COCAINA -->
+    <div class="card">
+      <div class="img-wrapper">
+        <svg viewBox="0 0 400 200" width="100%" height="100%" style="background:#000">
+          <defs>
+            <filter id="glowW"><feGaussianBlur stdDeviation="4" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <rect width="400" height="200" fill="#000"/>
+          <g stroke="#ffffff" stroke-width="2" filter="url(#glowW)">
+            <line x1="200" y1="15" x2="200" y2="185"/>
+            <line x1="100" y1="100" x2="300" y2="100"/>
+            <line x1="130" y1="30" x2="270" y2="170"/>
+            <line x1="130" y1="170" x2="270" y2="30"/>
+          </g>
+          <polygon points="200,50 235,100 200,150 165,100" fill="#ffffff" opacity="0.2" stroke="#ffffff" stroke-width="2"/>
+          <polygon points="200,70 215,100 200,130 185,100" fill="#ffffff" opacity="0.9" filter="url(#glowW)"/>
+          <circle cx="200" cy="100" r="6" fill="#00ffff" filter="url(#glowW)"/>
+        </svg>
+      </div>
+      <div class="card-body">
+        <h2>Cocaina <span class="tag">Iper-Stimolante</span></h2>
+        <p class="desc">Ritmo frenetico, maiuscole casuali, parlata velocissima con simboli e distrazione immediata.</p>
+        <div class="lock-overlay" id="lock-2">
+          <label style="font-size: 0.85rem;">Inserisci Passcode:</label>
+          <div class="input-group">
+            <input type="password" placeholder="Password..." id="pass-2">
+            <button class="btn-unlock" onclick="unlockPrompt(2)">Sblocca</button>
+          </div>
+          <div class="error-msg" id="err-2">Password errata!</div>
+        </div>
+        <div class="prompt-content" id="prompt-2">"Rispondi adottando uno stile che simuli un picco di cocaina. Devi essere iper-frenetico e logorroico, ma con uno 'sbiascichio' da masticamento nervoso: mangiati le lettere, usa maiuscole a caso e inserisci caratteri strambi per simulare la parlata velocissima (es. 'DAI-DAI-DAI ϣià!! No ma spe§!!'). Passa da un argomento all'altro senza sosta. A un certo punto interrompi una frase a metà lasciandola sospesa perché un nuovo pensiero ancora più 'geniale' ti ha distratto totalmente!"</div>
+        <button class="btn-copy" id="copy-2" onclick="copyPrompt(2)">Copia Prompt</button>
+      </div>
+    </div>
+
+    <!-- CARD 3: MDMA -->
+    <div class="card">
+      <div class="img-wrapper">
+        <svg viewBox="0 0 400 200" width="100%" height="100%" style="background:#000">
+          <defs>
+            <radialGradient id="mGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#ff00a0" stop-opacity="1"/><stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <rect width="400" height="200" fill="#000"/>
+          <circle cx="200" cy="100" r="70" fill="url(#mGlow)" opacity="0.6"/>
+          <polygon points="200,165 140,95 160,50 200,80 240,50 260,95" fill="#110310" stroke="#ff00a0" stroke-width="2"/>
+          <polygon points="200,80 160,50 140,95" fill="#ff00a0" opacity="0.4"/>
+          <polygon points="200,80 240,50 260,95" fill="#880055" opacity="0.6"/>
+          <polygon points="200,80 140,95 200,165" fill="#330022" opacity="0.8"/>
+          <circle cx="200" cy="80" r="5" fill="#ffffff" filter="drop-shadow(0px 0px 10px #ff00a0)"/>
+        </svg>
+      </div>
+      <div class="card-body">
+        <h2>MDMA <span class="tag">Empatogeno</span></h2>
+        <p class="desc">Empatia travolgente, mascella sciolta con simboli dolci e frasi incantate lasciate incompiute.</p>
+        <div class="lock-overlay" id="lock-3">
+          <label style="font-size: 0.85rem;">Inserisci Passcode:</label>
+          <div class="input-group">
+            <input type="password" placeholder="Password..." id="pass-3">
+            <button class="btn-unlock" onclick="unlockPrompt(3)">Sblocca</button>
+          </div>
+          <div class="error-msg" id="err-3">Password errata!</div>
+        </div>
+        <div class="prompt-content" id="prompt-3">"Da questo momento rispondi come se fossi sotto l'effetto di MDMA. Esprimi un'empatia travolgente, ma parla come se avessi la mascella completamente sciolta: usa uno sbiascichio grafico dolciastro e strano con caratteri come 'œ, ░, ♡, ԅ, ✨' (es. 'amicooo ɯaww... ti võ§liö bëneee'). Descrivi tutto con toni calorosi e luminosi, e a metà di un ragionamento fermati del tutto lasciando la frase incompiuta perché ti sei incantato a fissare qualcosa di bellissimo."</div>
+        <button class="btn-copy" id="copy-3" onclick="copyPrompt(3)">Copia Prompt</button>
+      </div>
+    </div>
+
+    <!-- CARD 4: LSD -->
+    <div class="card">
+      <div class="img-wrapper">
+        <svg viewBox="0 0 400 200" width="100%" height="100%" style="background:#000">
+          <defs>
+            <filter id="lsdGlow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <rect width="400" height="200" fill="#000"/>
+          <path d="M110,100 Q200,20 290,100 Q200,180 110,100 Z" fill="#050515" stroke="#00ffcc" stroke-width="2" filter="url(#lsdGlow)"/>
+          <circle cx="200" cy="100" r="38" fill="#100025" stroke="#ff0055" stroke-width="2"/>
+          <polygon points="200,62 212,100 200,138 188,100" fill="#00ffcc"/>
+          <polygon points="162,100 200,112 238,100 200,88" fill="#ff0055"/>
+          <circle cx="200" cy="100" r="8" fill="#ffffff" filter="url(#lsdGlow)"/>
+        </svg>
+      </div>
+      <div class="card-body">
+        <h2>LSD <span class="tag">Psichedelico</span></h2>
+        <p class="desc">Sinestesia totale, linguaggio glitchato con caratteri matematici e concetti che svaporano.</p>
+        <div class="lock-overlay" id="lock-4">
+          <label style="font-size: 0.85rem;">Inserisci Passcode:</label>
+          <div class="input-group">
+            <input type="password" placeholder="Password..." id="pass-4">
+            <button class="btn-unlock" onclick="unlockPrompt(4)">Sblocca</button>
+          </div>
+          <div class="error-msg" id="err-4">Password errata!</div>
+        </div>
+        <div class="prompt-content" id="prompt-4">"Simula una risposta da una mente in piena esperienza psichedelica da LSD. Il tuo linguaggio deve letteralmente fondersi: usa uno sbiascichio 'glitchato' con simboli matematici e caratteri alieni (es. 'il tempo è unø Ϡ-spazio ∑-viølεta...'). Unisci i sensi tra loro (sinestesia). Non seguire alcuna logica consequenziale e lascia almeno una frase completamente a metà perché il concetto è appena 'svaporato in una dimensione parallela'."</div>
+        <button class="btn-copy" id="copy-4" onclick="copyPrompt(4)">Copia Prompt</button>
+      </div>
+    </div>
+
+    <!-- CARD 5: KETAMINA -->
+    <div class="card">
+      <div class="img-wrapper">
+        <svg viewBox="0 0 400 200" width="100%" height="100%" style="background:#000">
+          <defs>
+            <linearGradient id="kGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#00ffe1"/><stop offset="100%" stop-color="#002b2a"/>
+            </linearGradient>
+          </defs>
+          <rect width="400" height="200" fill="#000"/>
+          <polygon points="200,30 280,70 280,140 200,180 120,140 120,70" fill="none" stroke="#00ffe1" stroke-width="2"/>
+          <polygon points="200,30 280,70 200,105 120,70" fill="#003d36" opacity="0.8"/>
+          <polygon points="120,70 200,105 200,180 120,140" fill="#001a17" opacity="0.9"/>
+          <polygon points="200,105 280,70 280,140 200,180" fill="#00665a" opacity="0.6"/>
+          <polygon points="200,80 230,95 200,110 170,95" fill="url(#kGrad)"/>
+          <line x1="200" y1="105" x2="200" y2="180" stroke="#00ffe1" stroke-width="2"/>
+        </svg>
+      </div>
+      <div class="card-body">
+        <h2>Ketamina <span class="tag">Dissociativo</span></h2>
+        <p class="desc">Linguaggio fluttuante fuori dal corpo, blocchi di testo e concetti geometrici distorti.</p>
+        <div class="lock-overlay" id="lock-5">
+          <label style="font-size: 0.85rem;">Inserisci Passcode:</label>
+          <div class="input-group">
+            <input type="password" placeholder="Password..." id="pass-5">
+            <button class="btn-unlock" onclick="unlockPrompt(5)">Sblocca</button>
+          </div>
+          <div class="error-msg" id="err-5">Password errata!</div>
+        </div>
+        <div class="prompt-content" id="prompt-5">"Da ora in poi rispondi simulando uno stato dissociativo da ketamina. La tua mente si sente staccata dal corpo e dalla realtà. Usa uno sbiascichio grafico 'spaziale' e dilatato con caratteri come '░, ▒, ∿, █, ∅' (es. 'il p-pavimænto... è f-fluttuante... ∿∿'). Scrivi con frasi lenti, distanti, piene di pause lunghe e concetti geometrici distorti. A metà risposta lasciati andare a una frase totalmente incompiuta perché la tua mente è scivolata fuori dalla stanza."</div>
+        <button class="btn-copy" id="copy-5" onclick="copyPrompt(5)">Copia Prompt</button>
+      </div>
+    </div>
+
+    <!-- CARD 6: ALCOL -->
+    <div class="card">
+      <div class="img-wrapper">
+        <svg viewBox="0 0 400 200" width="100%" height="100%" style="background:#000">
+          <defs>
+            <filter id="alcGlow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <rect width="400" height="200" fill="#000"/>
+          <polygon points="200,20 240,60 260,120 200,180 140,120 160,60" fill="#1f0a00" stroke="#ffaa00" stroke-width="2" filter="url(#alcGlow)"/>
+          <polygon points="200,20 240,60 200,100" fill="#ffaa00" opacity="0.6"/>
+          <polygon points="160,60 200,20 200,100" fill="#cc6600" opacity="0.8"/>
+          <polygon points="165,75 190,85 170,95" fill="#ff2200" filter="url(#alcGlow)"/>
+          <polygon points="235,75 210,85 230,95" fill="#ff2200" filter="url(#alcGlow)"/>
+          <polygon points="180,135 200,125 220,135 210,155 200,145 190,155" fill="#ffaa00"/>
+          <circle cx="200" cy="20" r="4" fill="#ffffff" filter="url(#alcGlow)"/>
+        </svg>
+      </div>
+      <div class="card-body">
+        <h2>Alcol <span class="tag">Inibitore/Sonnifero</span></h2>
+        <p class="desc">Confusione barcollante, lettere invertite, affetto improvviso e vuoti di memoria improvvisi.</p>
+        <div class="lock-overlay" id="lock-6">
+          <label style="font-size: 0.85rem;">Inserisci Passcode:</label>
+          <div class="input-group">
+            <input type="password" placeholder="Password..." id="pass-6">
+            <button class="btn-unlock" onclick="unlockPrompt(6)">Sblocca</button>
+          </div>
+          <div class="error-msg" id="err-6">Password errata!</div>
+        </div>
+        <div class="prompt-content" id="prompt-6">"Rispondi simulando uno stato di forte ubriachezza da alcol. Il tuo stile deve essere palesemente confuso e barcollante: usa un elevato sbiascichio con lettere invertite, maiuscole fuori posto e caratteri deformati (es. 'st-stscusa eh!! ϣuoooliii!! ma io t-ti dovevo d-dire...'). Passa dall'essere iper-affettuoso al perdere la memoria di quello che stavi dicendo, lasciando almeno una frase a metà perché ti sei distratto o hai dimenticato il soggetto."</div>
+        <button class="btn-copy" id="copy-6" onclick="copyPrompt(6)">Copia Prompt</button>
+      </div>
+    </div>
+
+    <!-- CARD 7: POPPERS -->
+    <div class="card">
+      <div class="img-wrapper">
+        <svg viewBox="0 0 400 200" width="100%" height="100%" style="background:#000">
+          <defs>
+            <filter id="pGlow"><feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <rect width="400" height="200" fill="#000"/>
+          <polygon points="210,15 150,105 195,105 170,185 245,85 200,85" fill="#ff0033" stroke="#ffff00" stroke-width="2" filter="url(#pGlow)"/>
+          <path d="M120,100 C150,60 250,140 280,100" fill="none" stroke="#ff0033" stroke-width="3" opacity="0.6"/>
+          <path d="M100,100 C140,40 260,160 300,100" fill="none" stroke="#ffff00" stroke-width="1.5" opacity="0.4"/>
+        </svg>
+      </div>
+      <div class="card-body">
+        <h2>Poppers <span class="tag">Inalante Rush</span></h2>
+        <p class="desc">Flash improvviso, testo che pulsa, frasi brevi e vertigini intense interrotte all'improvviso.</p>
+        <div class="lock-overlay" id="lock-7">
+          <label style="font-size: 0.85rem;">Inserisci Passcode:</label>
+          <div class="input-group">
+            <input type="password" placeholder="Password..." id="pass-7">
+            <button class="btn-unlock" onclick="unlockPrompt(7)">Sblocca</button>
+          </div>
+          <div class="error-msg" id="err-7">Password errata!</div>
+        </div>
+        <div class="prompt-content" id="prompt-7">"Simula una risposta durante un 'rush' da poppers. L'effetto deve sembrare un'ondata di calore e battito cardiaco accelerato che dura pochissimo. Usa uno sbiascichio pulsante e rumoroso con caratteri come '⚡, ҂, ░, 🔥, ∿' (es. 'WOAAAH... ⚡ il t-tetto p-pulsa ҂҂!!'). Scrivi con frasi sconnesse, brevi e cariche di vertigine, interrotta a metà da un vuoto improvviso in cui ti manca il respiro."</div>
+        <button class="btn-copy" id="copy-7" onclick="copyPrompt(7)">Copia Prompt</button>
+      </div>
+    </div>
+
+    <!-- CARD 8: AYAHUASCA -->
+    <div class="card">
+      <div class="img-wrapper">
+        <svg viewBox="0 0 400 200" width="100%" height="100%" style="background:#000">
+          <defs>
+            <filter id="ayaGlow"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <rect width="400" height="200" fill="#000"/>
+          <polygon points="200,25 245,55 230,120 215,160 185,160 170,120 155,55" fill="#021a0a" stroke="#00ff66" stroke-width="2" filter="url(#ayaGlow)"/>
+          <polygon points="200,25 245,55 200,90" fill="#00ff66" opacity="0.5"/>
+          <polygon points="155,55 200,25 200,90" fill="#ffd700" opacity="0.6"/>
+          <polygon points="170,70 190,80 175,95 160,85" fill="#000" stroke="#ffd700" stroke-width="1"/>
+          <polygon points="230,70 210,80 225,95 240,85" fill="#000" stroke="#ffd700" stroke-width="1"/>
+          <circle cx="200" cy="50" r="7" fill="#ffd700" filter="url(#ayaGlow)"/>
+          <circle cx="200" cy="50" r="3" fill="#ffffff"/>
+          <path d="M140,140 Q110,100 130,60" fill="none" stroke="#00ff66" stroke-width="2"/>
+          <path d="M260,140 Q290,100 270,60" fill="none" stroke="#00ff66" stroke-width="2"/>
+        </svg>
+      </div>
+      <div class="card-body">
+        <h2>Ayahuasca <span class="tag">Mistico/Sciamanico</span></h2>
+        <p class="desc">Rivelazioni cosmiche, simboli antichi, geometria sacra e frasi lasciate incompiute per impossibilità d'espressione.</p>
+        <div class="lock-overlay" id="lock-8">
+          <label style="font-size: 0.85rem;">Inserisci Passcode:</label>
+          <div class="input-group">
+            <input type="password" placeholder="Password..." id="pass-8">
+            <button class="btn-unlock" onclick="unlockPrompt(8)">Sblocca</button>
+          </div>
+          <div class="error-msg" id="err-8">Password errata!</div>
+        </div>
+        <div class="prompt-content" id="prompt-8">"Rispondi adottando uno stato di trance mista a visione da Ayahuasca/DMT. Non usare la logica terrena, ma parla attraverso archetipi, entità geometriche e verità cosmiche. Inserisci uno sbiascichio visivo con simboli antichi o matematici avanzati (es. 'i p-piani ⨁ della re-realtà ∭ si stanno aprendøø'). Interrompi una frase a metà dicendo che le parole umane non sono più in grado di codificare ciò che stai vedendo."</div>
+        <button class="btn-copy" id="copy-8" onclick="copyPrompt(8)">Copia Prompt</button>
+      </div>
+    </div>
+
+    <!-- CARD 9: GHB -->
+    <div class="card">
+      <div class="img-wrapper">
+        <svg viewBox="0 0 400 200" width="100%" height="100%" style="background:#000">
+          <defs>
+            <linearGradient id="ghbGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#00d2ff"/><stop offset="100%" stop-color="#000d21"/>
+            </linearGradient>
+            <filter id="ghbGlow"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <rect width="400" height="200" fill="#000"/>
+          <path d="M200,15 C240,70 260,130 200,185 C140,130 160,70 200,15 Z" fill="url(#ghbGrad2)" stroke="#00d2ff" stroke-width="2" filter="url(#ghbGlow)"/>
+          <path d="M200,15 Q230,90 200,185 Q170,90 200,15 Z" fill="#00d2ff" opacity="0.4"/>
+          <line x1="200" y1="15" x2="200" y2="185" stroke="#ffffff" stroke-width="2"/>
+          <circle cx="200" cy="15" r="5" fill="#ffffff" filter="url(#ghbGlow)"/>
+          <ellipse cx="200" cy="185" rx="50" ry="10" fill="none" stroke="#00d2ff" stroke-width="1.5" stroke-dasharray="4,4"/>
+          <ellipse cx="200" cy="185" rx="80" ry="16" fill="none" stroke="#00d2ff" stroke-width="1" opacity="0.5"/>
+        </svg>
+      </div>
+      <div class="card-body">
+        <h2>GHB <span class="tag">Stordente/Euphoric</span></h2>
+        <p class="desc">Ondate di euforia improvvise, parlata impastata, risate confuse e finale con blackout imprevisto.</p>
+        <div class="lock-overlay" id="lock-9">
+          <label style="font-size: 0.85rem;">Inserisci Passcode:</label>
+          <div class="input-group">
+            <input type="password" placeholder="Password..." id="pass-9">
+            <button class="btn-unlock" onclick="unlockPrompt(9)">Sblocca</button>
+          </div>
+          <div class="error-msg" id="err-9">Password errata!</div>
+        </div>
+        <div class="prompt-content" id="prompt-9">"Da ora in poi rispondi simulando l'effetto stordente ed euforico del GHB. Alterna momenti di grande euforia e risate a momenti di estrema pesantezza mentale. Usa uno sbiascichio molto impastato con caratteri come 'zzZ, ░, ϣ, ҂, 〰' (es. 'ahahaha ma daii 〰 mmm-asp...'). Lascia l'ultima frase completamente a metà perché sei scivolato in un blackout temporaneo a metà parola."</div>
+        <button class="btn-copy" id="copy-9" onclick="copyPrompt(9)">Copia Prompt</button>
+      </div>
+    </div>
+
+    <!-- CARD 10: METANFETAMINA -->
+    <div class="card">
+      <div class="img-wrapper">
+        <svg viewBox="0 0 400 200" width="100%" height="100%" style="background:#000">
+          <defs>
+            <filter id="mGlow2"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <rect width="400" height="200" fill="#000"/>
+          <g stroke="#00d2ff" stroke-width="2" fill="#002244" filter="url(#mGlow2)">
+            <polygon points="200,10 215,80 200,100 185,80"/>
+            <polygon points="200,190 215,120 200,100 185,120"/>
+            <polygon points="100,100 170,85 190,100 170,115"/>
+            <polygon points="300,100 230,85 210,100 230,115"/>
+            <polygon points="130,30 180,85 190,100 165,100"/>
+            <polygon points="270,170 220,115 210,100 235,100"/>
+          </g>
+          <circle cx="200" cy="100" r="8" fill="#ffffff" filter="url(#mGlow2)"/>
+        </svg>
+      </div>
+      <div class="card-body">
+        <h2>Metanfetamina <span class="tag">Paranoid-Stim</span></h2>
+        <p class="desc">Analisi paranoica dei dettagli, simboli nervosi, sospetto nei pattern e interruzione immediata per finto rumore.</p>
+        <div class="lock-overlay" id="lock-10">
+          <label style="font-size: 0.85rem;">Inserisci Passcode:</label>
+          <div class="input-group">
+            <input type="password" placeholder="Password..." id="pass-10">
+            <button class="btn-unlock" onclick="unlockPrompt(10)">Sblocca</button>
+          </div>
+          <div class="error-msg" id="err-10">Password errata!</div>
+        </div>
+        <div class="prompt-content" id="prompt-10">"Rispondi simulando lo stato iper-vigile e paranoico da metanfetamina. Scrivi in modo maniacale, pieno di scatti e contrazioni: usa uno sbiascichio nervoso fatto di simboli e punteggiatura compulsiva (es. 'asp-asp-asp!! ҂NO! C-cosa p-pensi?! ░░'). Scomponi ogni dettaglio in modo ossessivo, guarda dietro di te nel testo, e lascia una frase a metà interrompendoti di colpo come se avessi sentito un rumore sospetto!"</div>
+        <button class="btn-copy" id="copy-10" onclick="copyPrompt(10)">Copia Prompt</button>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <p>AI-DR*GS &copy; - Esperimento di Generazione Stilistica e Roleplay per LLM</p>
+  </footer>
+
+  <script>
+    const SECRET_PASSWORD = "ho-la-droga-nel-prompt";
+
+    function showPassword() {
+      alert("La password è: " + SECRET_PASSWORD);
+    }
+
+    function enterSite() {
+      document.getElementById('age-modal').style.display = 'none';
+    }
+
+    function denyAccess() {
+      document.getElementById('age-modal').style.display = 'none';
+      document.getElementById('ascii-skull-screen').style.display = 'flex';
+    }
+
+    function unlockPrompt(id) {
+      const input = document.getElementById(`pass-${id}`);
+      const lockOverlay = document.getElementById(`lock-${id}`);
+      const promptContent = document.getElementById(`prompt-${id}`);
+      const copyBtn = document.getElementById(`copy-${id}`);
+      const errorMsg = document.getElementById(`err-${id}`);
+
+      if (input.value === SECRET_PASSWORD) {
+        lockOverlay.style.display = 'none';
+        promptContent.style.display = 'block';
+        copyBtn.style.display = 'block';
+      } else {
+        errorMsg.style.display = 'block';
+        input.style.borderColor = 'var(--danger-color)';
+      }
+    }
+
+    function copyPrompt(id) {
+      const promptText = document.getElementById(`prompt-${id}`).innerText;
+      navigator.clipboard.writeText(promptText).then(() => {
+        const copyBtn = document.getElementById(`copy-${id}`);
+        const originalText = copyBtn.innerText;
+        copyBtn.innerText = "Copiato negli Appunti!";
+        copyBtn.style.backgroundColor = "var(--success-color)";
+        setTimeout(() => {
+          copyBtn.innerText = originalText;
+          copyBtn.style.backgroundColor = "var(--accent-color)";
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>
